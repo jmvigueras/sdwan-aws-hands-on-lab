@@ -284,6 +284,11 @@ Puedes comprobarlo revisando la tabla de rutas del TGW `aws-eu-hub-rt-pre-inspec
 ## Laboratorio completado
 Enhorabuena!
 
+- Último paso del lab, please :)
+  ```sh
+  $ terraform destroy -auto-approve
+  ```
+
 ## Support
 This a personal repository with goal of testing and demo Fortinet solutions on the Cloud. No support is provided and must be used by your own responsability. Cloud Providers will charge for this deployments, please take it in count before proceed.
 
