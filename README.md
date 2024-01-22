@@ -130,6 +130,13 @@ secret_key          = "<AWS Secret Key>"
 
 ## 6. **Despligue** 
 
+* Instalar Terraform
+  ```sh
+  $ sudo yum install -y yum-utils shadow-utils
+  $ sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+  $ sudo yum -y install terraform
+  ```
+
 * Inicialización de providers y módulos:
   ```sh
   $ terraform init

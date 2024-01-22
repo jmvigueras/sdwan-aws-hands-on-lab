@@ -6,7 +6,7 @@
 #------------------------------------------------------------------------------
 # Create VPC for hub EU
 module "office_forti_vpc" {
-  source  = "jmvigueras/ftnt-modules/aws//modules/vpc"
+  source  = "jmvigueras/ftnt-aws-modules/aws//modules/vpc"
   version = "0.0.3"
 
   prefix     = "${local.prefix}-${local.tags["Owner"]}-${random_string.random.result}"
@@ -23,7 +23,7 @@ module "office_forti_vpc" {
 }
 # Create FGT NIs
 module "office_forti_nis" {
-  source  = "jmvigueras/ftnt-modules/aws//modules/fgt_ni_sg"
+  source  = "jmvigueras/ftnt-aws-modules/aws//modules/fgt_ni_sg"
   version = "0.0.3"
 
   prefix             = "${local.prefix}-${local.tags["Owner"]}-${random_string.random.result}"
@@ -39,7 +39,7 @@ module "office_forti_nis" {
 module "office_forti_config" {
   for_each = { for k, v in module.office_forti_nis.fgt_ports_config : k => v }
 
-  source  = "jmvigueras/ftnt-modules/aws//modules/fgt_config"
+  source  = "jmvigueras/ftnt-aws-modules/aws//modules/fgt_config"
   version = "0.0.3"
 
   admin_cidr     = local.admin_cidr
@@ -83,7 +83,7 @@ data "template_file" "office_forti_config_extra" {
 }
 # Create FGT for hub EU
 module "office_forti" {
-  source  = "jmvigueras/ftnt-modules/aws//modules/fgt"
+  source  = "jmvigueras/ftnt-aws-modules/aws//modules/fgt"
   version = "0.0.3"
 
   prefix        = "${local.prefix}-${local.tags["Owner"]}-${random_string.random.result}"
@@ -101,7 +101,7 @@ module "office_forti" {
 }
 # Update private RT route RFC1918 cidrs to FGT NI and Core Network
 module "office_forti_vpc_routes" {
-  source  = "jmvigueras/ftnt-modules/aws//modules/vpc_routes"
+  source  = "jmvigueras/ftnt-aws-modules/aws//modules/vpc_routes"
   version = "0.0.3"
 
   ni_id     = module.office_forti_nis.fgt_ids_map["az1.fgt1"]["port2.private"]
@@ -109,7 +109,7 @@ module "office_forti_vpc_routes" {
 }
 # Crate test VM in bastion subnet
 module "office_forti_vm" {
-  source  = "jmvigueras/ftnt-modules/aws//modules/vm"
+  source  = "jmvigueras/ftnt-aws-modules/aws//modules/vm"
   version = "0.0.3"
 
   prefix          = "${local.prefix}-${local.tags["Owner"]}-${random_string.random.result}"
