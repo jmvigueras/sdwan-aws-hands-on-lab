@@ -271,7 +271,20 @@ Puedes comprobarlo revisando la tabla de rutas del TGW `aws-eu-hub-rt-pre-inspec
 ![image7-3-1](./images/image7-3-1.png)
 
 > [!NOTE]
-> En los despliegues SDWAN con HUB activo-activo, los spokes SDWAN se suelen configurar para conectar a las dos instancias al mismo tiempo. De forma que las dos anuniarian los rangos IP del spoke. En este caso, hemos balanceado via GSLB (Route53) la conexión VPN entre las dos instancias, por lo que realmente el spoke está conectado a una única instancia al mismo tiempo. 
+> En los despliegues SDWAN con HUB activo-activo, los spokes SDWAN se suelen configurar para conectar a las dos instancias al mismo tiempo. De forma que las dos anuncian los rangos IP del spoke a los BGP peers. En este caso, hemos balanceado via GSLB (Route53) la conexión VPN entre las dos instancias, por lo que realmente el spoke está conectado a una única instancia al mismo tiempo. Además, hemos modificado los anuncios entre los HUBS (interconexión vxlan entre ellos), para que añadan una `community BGP` para poder identificar los anuncios internos iBGP entre ellos, el reenviar estos anuncios al TGW, los prefix con dicha comunity, se penalizan en el AS path. 
+
+- Rutas anunciadas al TGW desde la instancia fortigate AZ1: 
+
+![image7-3-2](./images/image7-3-2.png)
+
+- Rutas anunciadas al TGW desde la instancia fortigate AZ2: 
+
+![image7-3-3](./images/image7-3-3.png)
+
+See observa como el prefix `10.1.1.0/24` se anuncia con un AS path 65000 desde el fortigate AZ2 y con AS path `65010 65010` desde el foritigate en AZ1.
+
+> [!NOTE]
+> Si quisieramos un balanceo de tráfico, usando la compatibilidad ECMP del TGW, no modificariamos los anuncios contra este. En estos escenrios, se puede dar routing asimétrico y debemos configurarar los Fortigates para poder manejar este tipo de tráfico.
 
 ### 7.4 Tráfico entre spokes SDWAN
 
