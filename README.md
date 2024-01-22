@@ -214,6 +214,8 @@ En este caso volver a ejecutar el apply de terraform para finalizar la ejecució
 
 ![image7-1-0](./images/image7-1-0-3.png)
 
+- Comandos interesantes para troubleshooting: 
+
 ```sh
 get router info bgp summary
 get router info routing-table bgp
