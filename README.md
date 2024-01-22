@@ -20,11 +20,12 @@ https://www.fortidemoscloud.com
 ## Lab T1. Resumen puesta en marcha
 
 El participante desplegará los siguientes recursos sobre AWS:
-- 1 x VPC con un CIDR diferente por participante preestablecido para desplegar la instancia de fortigate y servidor bastion. 
-- Los Security Groups (SG) que se asociarán a cada una de las interfaces. 
+- 1 x VPC, con un CIDR diferente por participante. Aquí se desplegará la instancia de fortigate y un servidor para test o bastión. 
+- Security Groups (SG) para las interfaces. 
 - 1 x fortigate con los interfaces necesarios en cada subnet, sus SG asociados y la configuración SDWAN necesaria para conectar al HUB.
-- Es necesario actualizar las variables proporcianadas en el [portal](https://wwww.fortidemoscloud.com) para poder desplegar el código. 
+
 - El código Terraform que se proporciona en el laboratorio, se basa en los módulos creados para desplegar servicios Fortinet en AWS. [AWS Fortinet Modules](https://github.com/jmvigueras/terraform-ftnt-aws-modules). 
+- Es necesario actualizar las variables proporcianadas en el [portal](https://wwww.fortidemoscloud.com) para poder desplegar el código.
 - No es necesario ningúna aplicación especifica en el PC o tener una suscripción a AWS.
 
 > [!NOTE]
@@ -57,6 +58,8 @@ Desde el [portal formación](http://www.fortidemoscloud.com) puedes encontrar el
 
 ![Portal de acceso AWS](./images/image1-1-3.png)
 
+> [!NOTE]
+> La conexión a Cloud9 es opcional si el participante prefiere realizar el lab desde su propio PC. Las herramientas necesarias son `git` y `terraform`.
 
 ## 2. Clonar repositorio desde GitHub
 - Abrir una nueva consola terminal o usar la actual.
@@ -86,6 +89,7 @@ cd sdwan-aws-hands-on-lab/terraform
 - Los datos se obtinen desde el [portal formación](https://www.fortidemoscloud.com) 
 - Hacer doble click en el fichero **0_UPDATE.tf** desde el explorador de ficheros.
 - Actualizar las siguientes variables con los datos de cada participante.
+
 ```sh
   # Unique User ID (same as IAM user name)
   user_id = "aws-eu-west-1-user-0"
@@ -104,9 +108,9 @@ cd sdwan-aws-hands-on-lab/terraform
 }
 ```
 > [!WARNING]
-> Recuerda guardar el fichero con los cambios realizados
+> Recuerda guardar el fichero con los cambios realizados, (puntito blanco en el tab).
 
-Nota: los rangos cidr están repartidos para cada participante y no se solapan, para lo que se ha seguido la siguiente nomenclatura:
+Nota: los rangos cidr están repartidos para cada participante y no se solapan, para lo que se ha seguido el siguiente patrón:
 
  - 10.1.x.x asignado a la region west-1
  - 10.2.x.x asignado a la region west-2
@@ -125,17 +129,17 @@ secret_key          = "<AWS Secret Key>"
 - Las variables deben quedar configuradas con el siguiente patrón: access_key="Axxxxxxxxx"
 - Cambiar el nombre al fichero `terraform.tfvars.example` a `terraform.tfvars`
 
-(Recuerda guardar el fichero con los cambios realizados)
+> [!WARNING]
+> Recuerda guardar el fichero con los cambios realizados, (puntito blanco en el tab).
 
 ## 6. **Despligue** 
 
-* Instalar Terraform
+* Instalación de Terraform:
   ```sh
   $ sudo yum install -y yum-utils shadow-utils
   $ sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
   $ sudo yum -y install terraform
   ```
-
 * Inicialización de providers y módulos:
   ```sh
   $ terraform init
@@ -176,39 +180,37 @@ En este caso volver a ejecutar el apply de terraform para finalizar la ejecució
 ## 7. Comprobar conectividad
 
 ### 7.0. ¿Cómo acceder al Fortigate?
-- En el output del despligue de terraform, puedes encontrar la URL para acceder al mismo. ("mgmt_url" = https://<ip_management>:8443) 
+- En el output del despligue de terraform, puedes encontrar la URL para acceder al equipo. ("mgmt_url" = https://<ip_management>:8443) 
 - Al acceder solicitará resetear la contraseña. La contraseña inicial es el ID de la instancia EC2 del fortigate, que puedes consultar desde la consola de AWS o en el output del terraform. 
 
 ![image7-0-1](./images/image7-0-1.png)
 
-- Resetear password
+- Resetear password:
 
 ![image7-0-2](./images/image7-0-2.png)
 
 ### 7.1. Comprobación de conectividad a HUB y contra servidor local
 
-- Comprobación de la correcta conexión al HUB
+- Comprobación de la correcta conexión al HUB:
 
-> [!NOTE]
-> GUI
+**Via GUI**
 
-Desde menú `Dashboard` > Network > panel IPSEC o SD-WAN:
+- Desde menú `Dashboard` > Network > panel IPSEC o SD-WAN:
 
 ![image7-1-0](./images/image7-1-0.png)
 
-Desde menú `Dashboard` > panel Network > panel Routing:
+- Desde menú `Dashboard` > panel Network > panel Routing:
 
 ![image7-1-0](./images/image7-1-0-1.png)
 
-Desde menú `Network` > `SD-WAN`:
+- Desde menú `Network` > `SD-WAN`:
 
 ![image7-1-0](./images/image7-1-0-2.png)
 
 
-> [!NOTE]
-> CLI
+**Via CLI**
 
-Puedes abrir uno o varios terminales de consola desde la GUI:
+- Puedes abrir uno o varios terminales de consola desde la GUI:
 
 ![image7-1-0](./images/image7-1-0-3.png)
 
