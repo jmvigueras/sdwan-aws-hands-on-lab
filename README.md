@@ -34,7 +34,6 @@ El participante desplegará los siguientes recursos sobre AWS:
 
 ![architecture overview](./images/image0.png)
 
-
 # LAB
 ## Pasos a seguir:
 
@@ -162,24 +161,63 @@ secret_key          = "<AWS Secret Key>"
 
 ![image6-2](./images/image6-2.png)
 
+> [!NOTE]
+> En la última versión del provider de AWS el despliegue da un error al final de la ejecución del plan.
+
+![image6-3](./images/image6-3.png)
+
+En este caso volver a ejecutar el apply de terraform para finalizar la ejecución.
+  ```sh
+  $ terraform apply -auto-approve
+  ```
+
+![image6-4](./images/image6-4.png)
+
 ## 7. Comprobar conectividad
 
 ### 7.0. ¿Cómo acceder al Fortigate?
 - En el output del despligue de terraform, puedes encontrar la URL para acceder al mismo. ("mgmt_url" = https://<ip_management>:8443) 
 - Al acceder solicitará resetear la contraseña. La contraseña inicial es el ID de la instancia EC2 del fortigate, que puedes consultar desde la consola de AWS o en el output del terraform. 
 
+![image7-0-1](./images/image7-0-1.png)
+
+- Resetear password
+
+![image7-0-2](./images/image7-0-2.png)
+
 ### 7.1. Comprobación de conectividad a HUB y contra servidor local
 
 - Comprobación de la correcta conexión al HUB
+
+> [!NOTE]
+> GUI
+
+Desde menú `Dashboard` > Network > panel IPSEC o SD-WAN:
+
+![image7-1-0](./images/image7-1-0.png)
+
+Desde menú `Dashboard` > panel Network > panel Routing:
+
+![image7-1-0](./images/image7-1-0-1.png)
+
+Desde menú `Network` > `SD-WAN`:
+
+![image7-1-0](./images/image7-1-0-2.png)
+
+
+> [!NOTE]
+> CLI
+
+Puedes abrir uno o varios terminales de consola desde la GUI:
+
+![image7-1-0](./images/image7-1-0-3.png)
+
 ```sh
 get router info bgp summary
 get router info routing-table bgp
 get router info bgp neighbors 172.16.100.1 ad
 get router info bgp neighbors 172.16.100.1 ro
 ```
-![image7-1-1](./images/image7-1-1.png)
-
-![image7-1-2](./images/image7-1-2.png)
 
 - Conexión local contra el servidor (ejecutar desde consola Fortigate)
 ```sh
@@ -191,18 +229,57 @@ Nota: recuerda que la IP de tu servidor depende de tu rango CIDR asignado:
 ej. 10.1.1.74 asignado al user 1 en la region west-1
 ej. 10.2.5.74 asignado al user 5 en la region west-2
 
-7.2 Comprobar que vuestro usuario ya aparece en la Leader Board del portal
+![image7-1-0](./images/image7-1-0-4.png)
 
-![Leader Board](./images/image7-2-1.png)
+### 7.2 Comprobar que vuestro usuario ya aparece en la Leader Board del portal
 
+> [!NOTE]
+> Si has realizado un despliegue sin modificar ningún parámetro adicional, tu usuario todavía no aparecerá en el Leader Board, esto es debido a que se ha configurado una regla de firewall, con destino un objeto dinámico, apuntando a un tag de tu servidor, pero, NO esta configurado correctamente. 
 
-7.3 Actividad extra
+Ve a la sección de politicas de seguridad `Policy & Objects` > `Firewal Policy`, desde allí verás la primera regla configurada con un signo de alerta indicando el problema. (Te recomiendo la vista `By Sequence` que puedes activar en la parte derecha).
+
+![image7-2-1](./images/image7-2-1.png)
+
+Para actualizar el valor del objeto dinámico, puedes hacerlo directamente desde la sección de `Firewall Policy`, dejando el curso sobre el `objeto sdn-student-server` y cliclando en `Edit` o desde el menú `Policy & Objects` > `Addresses`
+
+![image7-2-2](./images/image7-2-2.png)
+
+Selecciona en el filtro del objeto dinámico el TAG correcto con tu nombre de usuario.
+
+```sh
+Tag.Owner=aws-eu-west-x-user-y
+```
+
+![image7-2-3](./images/image7-2-3.png)
+
+En el momento que actualices el objeto con el Tag de Owner de tu usuario, el conector ya resolverá aquellas instancias que tengan asignado dicho Tag. En este laboratorio verás también las IPs asignadas a la instancia de firewall fortigate. 
+
+![image7-2-4](./images/image7-2-4.png)
+
+De esta forma, la política que permite el tráfico desde el servidor del laboratorio, contra tu servidor de test, ya macheará correctamente la IP y dejará pasar el health-check que se realizá desde este. (Ya debes observar tráfico en la regla).
+
+Y tu usario ya debe aparcer en la Leader Board:
+
+![Leader Board](./images/image7-2-5.png)
+
+### 7.3 Publicación de rutas en AWS TGW
+
+Llegados a este punto, la conectividad entre el servidor del laboratorio y tu servidor de test se realiza de manera correcta. El servidor de laboratorio está desplegado en una VPC atachada al TGW y aprende la red de tu spoke SDWAN a través de BGP por el peering entre el HUB y el TGW. 
+
+Puedes comprobarlo revisando la tabla de rutas del TGW `aws-eu-hub-rt-pre-inspection`:
+
+![image7-3-1](./images/image7-3-1.png)
+
+> [!NOTE]
+> En los despliegues SDWAN con HUB activo-activo, los spokes SDWAN se suelen configurar para conectar a las dos instancias al mismo tiempo. De forma que las dos anuniarian los rangos IP del spoke. En este caso, hemos balanceado via GSLB (Route53) la conexión VPN entre las dos instancias, por lo que realmente el spoke está conectado a una única instancia al mismo tiempo. 
+
+### 7.4 Tráfico entre spokes SDWAN
 
 - Conforme el resto de compañeros vayan desplegando sus Fortigates, se irán uniendo la red SDWAN, por lo que vuestro spoke irá aprendiendo nuevas rutas contra las redes que anuncian. (Red iBGP con HUB haciendo de Route Reflector)
 - Comprobar la conectividad mediante ADVPN a las redes de los compañeros. Pregunta a algún compañero la IP de sus servidor interno e intenta hacer ping desde el Fortigate o desde vuestro servidor de laboratorio. (Ej. Puedes hacer ping a la IP del servidor de test del usuario 0 10.1.0.74)
 - Comprobar que se levanta un nuevo túnel de forma dinámica. 
 
-![ADVPN](./images/image7-3-1.png)
+![ADVPN](./images/image7-4-1.png)
 
 ## Laboratorio completado
 Enhorabuena!
